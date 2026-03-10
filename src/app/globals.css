@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fff5f7;
+  --foreground: #4a3a3c;
+  --primary: #ffb7c5;
+  --primary-foreground: #ffffff;
+  --secondary: #ffe4e8;
+  --accent: #ff8fa3;
+  --border: #f8d7da;
+  --input-bg: #ffffff;
+  --disabled: #e2e8f0;
+  --disabled-foreground: #94a3b8;
+}
+
+.dark {
+  --background: #1a1617;
+  --foreground: #fcecef;
+  --primary: #ff8fa3;
+  --primary-foreground: #1a1617;
+  --secondary: #2d2426;
+  --accent: #ffb7c5;
+  --border: #3d3133;
+  --input-bg: #2d2426;
+  --disabled: #2d2426;
+  --disabled-foreground: #4b4445;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-input-bg: var(--input-bg);
+  --color-disabled: var(--disabled);
+  --color-disabled-foreground: var(--disabled-foreground);
+}
+
+.dark body {
+  background-color: #000000;
+}
+
+body {
+  background-color: #f0f0f0;
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#root-container {
+  width: 100%;
+  max-width: 430px;
+  background-color: var(--background);
+  min-height: 100vh;
+  position: relative;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
