@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   reactCompiler: true,
   experimental: {
-    allowedDevOrigins: ["192.168.35.83"],
+    // allowedDevOrigins: ["192.168.35.83"],
   },
 };
 
