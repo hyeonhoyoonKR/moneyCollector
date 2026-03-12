@@ -40,7 +40,7 @@ const InputWrapper = ({
         </div>
         <div className="flex items-center gap-2">
           {!isOpen && (
-            <span className="text-sm text-gray-400 max-w-[150px] truncate">
+            <span className="text-sm text-foreground/40 max-w-[150px] truncate">
               {value || placeholder}
             </span>
           )}
@@ -99,8 +99,7 @@ export default function Record() {
       const currentList = categories[type];
       const index = currentList.findIndex(cat => cat.id === formData.category);
       if (index !== -1) {
-        const itemWidth = 80 + 16; // 아이템 너비(80) + 갭(16, gap-4)
-        // 약간의 지연을 주어 애니메이션이 시작된 후 스크롤이 자연스럽게 일어나도록 함
+        const itemWidth = 80 + 16;
         const timer = setTimeout(() => {
           scrollRef.current?.scrollTo({
             left: index * itemWidth,
@@ -110,7 +109,7 @@ export default function Record() {
         return () => clearTimeout(timer);
       }
     }
-  }, [openField, type, formData.category]);
+  }, [openField]); // formData.category를 의존성에서 제거하여 자동 스크롤 시 무한 루프나 끊김 방지
 
   const categories = {
     expense: [
@@ -147,14 +146,19 @@ export default function Record() {
   };
 
   const handleCategoryScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    // 스크롤 중에는 상태를 업데이트하지 않고, 스냅이 끝날 때만 업데이트하도록 최적화 가능
+    // 하지만 현재 snap-center가 있으므로, 인덱스가 변할 때만 setFormData 호출
     const container = e.currentTarget;
     const scrollLeft = container.scrollLeft;
-    const itemWidth = 80 + 16; // 아이템 너비(80) + 갭(16, gap-4)
+    const itemWidth = 80 + 16;
     const index = Math.round(scrollLeft / itemWidth);
     const currentList = categories[type];
     
     if (currentList[index] && formData.category !== currentList[index].id) {
-      setFormData(prev => ({ ...prev, category: currentList[index].id }));
+      // requestAnimationFrame을 사용하여 렌더링 프레임에 맞춰 업데이트
+      requestAnimationFrame(() => {
+        setFormData(prev => ({ ...prev, category: currentList[index].id }));
+      });
     }
   };
 
@@ -181,7 +185,7 @@ export default function Record() {
               setOpenField(null);
             }}
             className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors relative z-10 ${
-              type === "expense" ? "text-accent" : "text-gray-400"
+              type === "expense" ? "text-accent" : "text-foreground/40"
             }`}
           >
             지출
@@ -200,7 +204,7 @@ export default function Record() {
               setOpenField(null);
             }}
             className={`flex-1 py-2 rounded-full text-sm font-bold transition-colors relative z-10 ${
-              type === "income" ? "text-accent" : "text-gray-400"
+              type === "income" ? "text-accent" : "text-foreground/40"
             }`}
           >
             수익
@@ -289,9 +293,9 @@ export default function Record() {
                 value={formData.amount}
                 onChange={handleInputChange}
                 placeholder="금액을 입력하세요"
-                className="w-full p-3 bg-secondary/20 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset pr-10 text-right font-bold text-lg"
+                className="w-full p-3 bg-secondary/20 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset pr-10 text-right font-bold text-lg text-foreground placeholder:text-foreground/20"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">원</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/40">원</span>
             </div>
             <div className="flex gap-2">
               {[100, 1000, 10000, 50000].map(val => (
@@ -330,18 +334,18 @@ export default function Record() {
               onChange={handleInputChange}
               maxLength={10}
               placeholder="내용을 입력해주세요 (최대 10자)"
-              className="w-full p-3 bg-secondary/20 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset"
+              className="w-full p-3 bg-secondary/20 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset text-foreground placeholder:text-foreground/20"
             />
           </div>
         </InputWrapper>
       </div>
 
       {/* 입력 버튼 */}
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-6 pb-4 z-30">
+      <div className="px-6 py-6 mt-auto">
         <button 
           type="button"
           disabled={!(Number(formData.amount) > 0 && formData.memo.trim().length > 0)}
-          className="w-full max-w-[200px] mx-auto block py-3.5 bg-primary text-primary-foreground font-bold rounded-full shadow-lg shadow-primary/30 hover:bg-accent transition-all active:scale-[0.98] disabled:bg-disabled disabled:text-disabled-foreground disabled:shadow-none disabled:cursor-not-allowed disabled:scale-100 disabled:opacity-60"
+          className="w-full max-w-[200px] mx-auto block py-3.5 bg-primary text-primary-foreground font-bold rounded-full shadow-lg shadow-primary/30 hover:bg-accent transition-all active:scale-[0.98] disabled:bg-disabled disabled:text-disabled-foreground disabled:shadow-none disabled:cursor-not-allowed disabled:scale-100 disabled:opacity-60 dark:bg-primary dark:text-primary-foreground"
         >
           입력
         </button>
