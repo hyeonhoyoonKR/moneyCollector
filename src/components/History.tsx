@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
 interface Transaction {
   id: string;
@@ -13,28 +14,79 @@ interface Transaction {
   memo: string;
 }
 
-const mockHistory: Transaction[] = [
-  { id: "1", date: "2026-03-10 14:30", category: "식비", type: "expense", amount: 12000, memo: "점심 쌀국수" },
-  { id: "2", date: "2026-03-10 09:00", category: "교통", type: "expense", amount: 1500, memo: "지하철" },
-  { id: "3", date: "2026-03-09 18:20", category: "용돈", type: "income", amount: 50000, memo: "부모님 용돈" },
-  { id: "4", date: "2026-03-09 12:00", category: "쇼핑", type: "expense", amount: 35000, memo: "티셔츠" },
-  { id: "5", date: "2026-03-08 20:00", category: "기타", type: "income", amount: 5000, memo: "당근마켓 판매" },
-  { id: "8", date: "2026-03-07 13:00", category: "식비", type: "expense", amount: 8500, memo: "김치찌개" },
-  { id: "9", date: "2026-03-07 10:00", category: "생활", type: "expense", amount: 2500, memo: "편의점 물" },
-  { id: "10", date: "2026-03-06 19:00", category: "식비", type: "expense", amount: 15000, memo: "돈까스" },
-  { id: "11", date: "2026-03-05 14:00", category: "여가", type: "expense", amount: 12000, memo: "영화관" },
-  { id: "12", date: "2026-03-04 11:00", category: "식비", type: "expense", amount: 7000, memo: "커피와 샌드위치" },
-  { id: "13", date: "2026-03-03 08:30", category: "교통", type: "expense", amount: 1250, memo: "버스" },
-  { id: "14", date: "2026-03-02 18:00", category: "식비", type: "expense", amount: 22000, memo: "치킨" },
-  { id: "15", date: "2026-03-01 10:00", category: "고정", type: "expense", amount: 55000, memo: "통신비" },
-  { id: "16", date: "2026-03-01 09:00", category: "근로", type: "income", amount: 2500000, memo: "급여" },
-  { id: "6", date: "2026-02-15 10:00", category: "고정", type: "expense", amount: 200000, memo: "월세" },
-  { id: "7", date: "2026-02-01 09:00", category: "근로", type: "income", amount: 3000000, memo: "급여" },
-];
+const categories = {
+  expense: [
+    { id: "식비", label: "식비", icon: "🍱" },
+    { id: "교통", label: "교통", icon: "🚌" },
+    { id: "쇼핑", label: "쇼핑", icon: "🛍️" },
+    { id: "생활", label: "생활", icon: "🏠" },
+    { id: "여가", label: "여가", icon: "🎨" },
+    { id: "고정", label: "고정", icon: "📅" },
+    { id: "기타", label: "기타", icon: "✨" },
+  ],
+  income: [
+    { id: "근로", label: "근로", icon: "💼" },
+    { id: "용돈", label: "용돈", icon: "💰" },
+    { id: "기타", label: "기타", icon: "✨" },
+  ]
+};
 
 export default function History() {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 2)); // 2026년 3월 (Month는 0부터 시작)
-  const today = new Date(2026, 2); // 현재 시스템 기준 (문제 설정상 2026년 3월)
+  const [currentDate, setCurrentDate] = useState(new Date()); 
+  const [history, setHistory] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const today = new Date();
+  const supabase = createClient();
+
+  const fetchHistory = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString();
+      const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59).toISOString();
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('time', firstDay)
+        .lte('time', lastDay)
+        .order('time', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching transactions:", error);
+        return;
+      }
+
+      if (data) {
+        const formattedData: Transaction[] = data.map((item: any) => {
+          const type = item.is_expense ? "expense" : "income";
+          const categoryList = categories[type];
+          const categoryLabel = categoryList[item.category]?.label || "기타";
+          
+          return {
+            id: item.id,
+            date: item.time,
+            category: categoryLabel,
+            type: type,
+            amount: item.amount,
+            memo: item.memo
+          };
+        });
+        setHistory(formattedData);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, [currentDate]);
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
@@ -52,15 +104,7 @@ export default function History() {
     return nextMonth > today;
   }, [currentDate, today]);
 
-  const filteredHistory = useMemo(() => {
-    return mockHistory.filter(item => {
-      const itemDate = new Date(item.date);
-      return (
-        itemDate.getFullYear() === currentDate.getFullYear() &&
-        itemDate.getMonth() === currentDate.getMonth()
-      );
-    });
-  }, [currentDate]);
+  const filteredHistory = history;
 
   const { totalIncome, totalExpense } = useMemo(() => {
     return filteredHistory.reduce(
@@ -130,7 +174,13 @@ export default function History() {
               transition={{ duration: 0.2 }}
               className="divide-y divide-border relative"
             >
-              {filteredHistory.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="py-20 text-center">
+                    <Loader2 className="animate-spin mx-auto text-primary" size={32} />
+                  </td>
+                </tr>
+              ) : filteredHistory.length > 0 ? (
                 <>
                   {filteredHistory.map((item) => (
                     <tr

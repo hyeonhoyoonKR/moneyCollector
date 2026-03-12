@@ -111,7 +111,7 @@ export default function MyPage({ user, onUpdate }: MyPageProps) {
             </button>
           )}
           {user?.friend_code && (
-            <p className="text-xs text-foreground/40 font-mono">#{user.friend_code}</p>
+            <p className="uppercase text-xs text-foreground/40 font-mono">#{user.friend_code}</p>
           )}
         </div>
         <p>{user?.email}</p>

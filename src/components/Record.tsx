@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Calendar, Tag, CreditCard, AlignLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, Tag, CreditCard, AlignLeft, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createClient } from "@/utils/supabase/client";
 
 type RecordType = "expense" | "income";
 type InputField = "date" | "category" | "amount" | "memo" | null;
@@ -76,7 +77,9 @@ const InputWrapper = ({
 export default function Record() {
   const [type, setType] = useState<RecordType>("expense");
   const [openField, setOpenField] = useState<InputField>(null);
+  const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const supabase = createClient();
   
   const [formData, setFormData] = useState({
     date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
@@ -170,6 +173,53 @@ export default function Record() {
             left: index * itemWidth,
             behavior: 'smooth'
         });
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.amount || !formData.memo.trim()) return;
+
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const categoryIndex = categories[type].findIndex(cat => cat.id === formData.category);
+
+      const { error } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          amount: parseInt(formData.amount),
+          is_expense: type === "expense",
+          category: categoryIndex,
+          memo: formData.memo.trim(),
+          time: new Date(formData.date).toISOString()
+        });
+
+      if (error) {
+        console.error("Error inserting transaction:", error);
+        alert("저장에 실패했습니다.");
+      } else {
+        alert("저장되었습니다.");
+        // 폼 초기화
+        setFormData({
+          date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+          category: categories[type][0].id,
+          amount: "",
+          memo: ""
+        });
+        setOpenField(null);
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      alert("알 수 없는 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -344,10 +394,11 @@ export default function Record() {
       <div className="px-6 py-6 mt-auto">
         <button 
           type="button"
-          disabled={!(Number(formData.amount) > 0 && formData.memo.trim().length > 0)}
-          className="w-full max-w-[200px] mx-auto block py-3.5 bg-primary text-primary-foreground font-bold rounded-full shadow-lg shadow-primary/30 hover:bg-accent transition-all active:scale-[0.98] disabled:bg-disabled disabled:text-disabled-foreground disabled:shadow-none disabled:cursor-not-allowed disabled:scale-100 disabled:opacity-60 dark:bg-primary dark:text-primary-foreground"
+          onClick={handleSubmit}
+          disabled={loading || !(Number(formData.amount) > 0 && formData.memo.trim().length > 0)}
+          className="w-full max-w-[200px] mx-auto flex items-center justify-center py-3.5 bg-primary text-primary-foreground font-bold rounded-full shadow-lg shadow-primary/30 hover:bg-accent transition-all active:scale-[0.98] disabled:bg-disabled disabled:text-disabled-foreground disabled:shadow-none disabled:cursor-not-allowed disabled:scale-100 disabled:opacity-60 dark:bg-primary dark:text-primary-foreground h-14"
         >
-          입력
+          {loading ? <Loader2 className="animate-spin" size={24} /> : "입력"}
         </button>
       </div>
     </div>
