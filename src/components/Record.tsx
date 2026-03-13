@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Calendar, Tag, CreditCard, AlignLeft, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/utils/supabase/client";
+import { useToast } from "./ToastProvider";
 
 type RecordType = "expense" | "income";
 type InputField = "date" | "category" | "amount" | "memo" | null;
@@ -80,6 +81,7 @@ export default function Record() {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+  const { showToast } = useToast();
   
   const [formData, setFormData] = useState({
     date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
@@ -184,7 +186,7 @@ export default function Record() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        alert("로그인이 필요합니다.");
+        showToast("로그인이 필요합니다.");
         return;
       }
 
@@ -203,9 +205,9 @@ export default function Record() {
 
       if (error) {
         console.error("Error inserting transaction:", error);
-        alert("저장에 실패했습니다.");
+        showToast("저장에 실패했습니다.");
       } else {
-        alert("저장되었습니다.");
+        showToast("저장되었습니다.");
         // 폼 초기화
         setFormData({
           date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
@@ -217,7 +219,7 @@ export default function Record() {
       }
     } catch (err) {
       console.error("Unexpected error:", err);
-      alert("알 수 없는 오류가 발생했습니다.");
+      showToast("알 수 없는 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }

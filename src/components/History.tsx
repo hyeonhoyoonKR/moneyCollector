@@ -2,8 +2,9 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { useToast } from "./ToastProvider";
 
 interface Transaction {
   id: string;
@@ -37,6 +38,7 @@ export default function History() {
   const [loading, setLoading] = useState(true);
   const today = new Date();
   const supabase = createClient();
+  const { showToast } = useToast();
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -96,6 +98,29 @@ export default function History() {
     const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
     if (nextMonth <= today) {
       setCurrentDate(nextMonth);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error("Error deleting transaction:", error);
+        showToast("삭제에 실패했습니다.");
+      } else {
+        // Local state update for immediate feedback
+        setHistory(prev => prev.filter(item => item.id !== id));
+        showToast("삭제되었습니다.");
+      }
+    } catch (err) {
+      console.error("Unexpected error during delete:", err);
+      showToast("알 수 없는 오류가 발생했습니다.");
     }
   };
 
@@ -207,10 +232,11 @@ export default function History() {
                       </td>
                       <td className="px-3 py-2.5 whitespace-nowrap">
                         <div className="flex justify-center gap-2">
-                          <button type="button" className="text-gray-400 hover:text-primary transition-colors">
-                            <Pencil size={14} />
-                          </button>
-                          <button type="button" className="text-gray-400 hover:text-red-400 transition-colors">
+                          <button 
+                            type="button" 
+                            onClick={() => handleDelete(item.id)}
+                            className="text-gray-400 hover:text-red-400 transition-colors"
+                          >
                             <Trash2 size={14} />
                           </button>
                         </div>

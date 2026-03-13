@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { LogOut, User as UserIcon, Loader2, Pencil } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { useToast } from "./ToastProvider";
 
 interface MyPageProps {
   user: {
@@ -22,6 +23,7 @@ export default function MyPage({ user, onUpdate }: MyPageProps) {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (user?.nickname) {
@@ -55,8 +57,9 @@ export default function MyPage({ user, onUpdate }: MyPageProps) {
     if (!error) {
       if (onUpdate) onUpdate();
       setIsEditing(false);
+      showToast("닉네임이 변경되었습니다.");
     } else {
-      alert("닉네임 변경에 실패했습니다.");
+      showToast("닉네임 변경에 실패했습니다.");
     }
     setLoading(false);
   };

@@ -7,6 +7,7 @@ import History from "@/components/History";
 import MyPage from "@/components/MyPage";
 import { createClient } from "@/utils/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ToastProvider } from "@/components/ToastProvider";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("record");
@@ -50,20 +51,22 @@ export default function Home() {
   };
 
   return (
-    <main className="flex-1 pb-20 overflow-hidden flex flex-col h-screen max-h-screen">
-      <header className="bg-background/80 backdrop-blur-md border-b border-border py-4 px-6 z-40 flex justify-between items-center shrink-0">
-        <h1 className="text-xl font-bold flex gap-0.5">
-          <span className="text-primary">돈버는</span>
-          <span className="text-accent">가계부</span>
-        </h1>
-        <ThemeToggle />
-      </header>
-      
-      <div className="flex-1 overflow-hidden min-h-0 relative">
-        {renderContent()}
-      </div>
+    <ToastProvider>
+      <main className="flex-1 pb-20 overflow-hidden flex flex-col h-screen max-h-screen">
+        <header className="bg-background/80 backdrop-blur-md border-b border-border py-4 px-6 z-40 flex justify-between items-center shrink-0">
+          <h1 className="text-xl font-bold flex gap-0.5">
+            <span className="text-primary">돈버는</span>
+            <span className="text-accent">가계부</span>
+          </h1>
+          <ThemeToggle />
+        </header>
+        
+        <div className="flex-1 overflow-hidden min-h-0 relative">
+          {renderContent()}
+        </div>
 
-      <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
-    </main>
+        <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+      </main>
+    </ToastProvider>
   );
 }
