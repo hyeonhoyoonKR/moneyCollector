@@ -117,7 +117,6 @@ export default function MyPage({ user, onUpdate }: MyPageProps) {
             <p className="uppercase text-xs text-foreground/40 font-mono">#{user.friend_code}</p>
           )}
         </div>
-        <p>{user?.email}</p>
         <p className="text-sm text-foreground/50 mb-6">
           {user?.app_metadata?.provider ? `${user.app_metadata.provider} 로그인` : "소셜 로그인"}
         </p>
