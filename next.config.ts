@@ -10,6 +10,7 @@ const withPWA = require("next-pwa")({
 
 const nextConfig: NextConfig = {
   /* 기존 설정 옵션 유지 */
+  turbopack: {},
   devIndicators: false,
   reactCompiler: true,
   experimental: {
