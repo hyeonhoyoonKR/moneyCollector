@@ -14,8 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "가계부 - 파스텔 핑크",
+  title: "돈 버는 가계부",
   description: "Next.js와 Supabase로 만든 가계부 앱",
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 export default function RootLayout({
@@ -28,8 +31,8 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <div id="root-container">

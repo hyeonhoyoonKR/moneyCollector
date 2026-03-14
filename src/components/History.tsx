@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
@@ -36,11 +36,19 @@ export default function History() {
   const [currentDate, setCurrentDate] = useState(new Date()); 
   const [history, setHistory] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const today = new Date();
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const supabase = createClient();
   const { showToast } = useToast();
 
-  const fetchHistory = async () => {
+  const today = useMemo(() => new Date(), []);
+
+  const allCategories = useMemo(() => {
+    const expenseCats = categories.expense.map(c => c.label === "기타" ? "기타(지출)" : c.label);
+    const incomeCats = categories.income.map(c => c.label === "기타" ? "기타(수익)" : c.label);
+    return Array.from(new Set([...expenseCats, ...incomeCats]));
+  }, []);
+
+  const fetchHistory = useCallback(async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -63,7 +71,7 @@ export default function History() {
       }
 
       if (data) {
-        const formattedData: Transaction[] = data.map((item: any) => {
+        const formattedData: Transaction[] = data.map((item: { id: string; time: string; is_expense: boolean; category: number; amount: number; memo: string }) => {
           const type = item.is_expense ? "expense" : "income";
           const categoryList = categories[type];
           const categoryLabel = categoryList[item.category]?.label || "기타";
@@ -84,11 +92,11 @@ export default function History() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentDate, supabase]);
 
   useEffect(() => {
     fetchHistory();
-  }, [currentDate]);
+  }, [fetchHistory]);
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
@@ -102,8 +110,6 @@ export default function History() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
-
     try {
       const { error } = await supabase
         .from('transactions')
@@ -129,7 +135,16 @@ export default function History() {
     return nextMonth > today;
   }, [currentDate, today]);
 
-  const filteredHistory = history;
+  const filteredHistory = useMemo(() => {
+    if (selectedCategories.length === 0) return history;
+    return history.filter(item => {
+      if (item.category === "기타") {
+        if (item.type === "expense") return selectedCategories.includes("기타(지출)");
+        if (item.type === "income") return selectedCategories.includes("기타(수익)");
+      }
+      return selectedCategories.includes(item.category);
+    });
+  }, [history, selectedCategories]);
 
   const { totalIncome, totalExpense } = useMemo(() => {
     return filteredHistory.reduce(
@@ -147,7 +162,7 @@ export default function History() {
   return (
     <div className="w-full flex flex-col h-full">
       {/* Month Navigation */}
-      <div className="flex items-center justify-center gap-6 py-6 bg-background">
+      <div className="flex items-center justify-center gap-6 pt-6 pb-4 bg-background">
         <button
           onClick={handlePrevMonth}
           className="p-1 rounded-full hover:bg-secondary/20 transition-colors text-foreground/50 dark:text-foreground/70"
@@ -177,6 +192,34 @@ export default function History() {
         >
           <ChevronRight size={24} />
         </button>
+      </div>
+
+      {/* Category Filter */}
+      <div className="px-6 pb-4 bg-background overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 flex-wrap justify-center min-w-max">
+          {allCategories.map((category) => {
+            const isSelected = selectedCategories.includes(category);
+            return (
+              <button
+                key={category}
+                onClick={() => {
+                  setSelectedCategories(prev => 
+                    isSelected 
+                      ? prev.filter(c => c !== category)
+                      : [...prev, category]
+                  );
+                }}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                  isSelected
+                    ? "bg-primary dark:bg-selected-bg text-white dark:text-selected-text border-primary dark:border-selected-bg shadow-sm"
+                    : "bg-input-bg text-foreground/50 border-border hover:border-primary/50"
+                }`}
+              >
+                {category}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto bg-input-bg border-b border-border min-h-0 relative">

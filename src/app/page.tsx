@@ -6,7 +6,6 @@ import Record from "@/components/Record";
 import History from "@/components/History";
 import MyPage from "@/components/MyPage";
 import { createClient } from "@/utils/supabase/client";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { ToastProvider } from "@/components/ToastProvider";
 
 export default function Home() {
@@ -58,7 +57,6 @@ export default function Home() {
             <span className="text-primary">돈버는</span>
             <span className="text-accent">가계부</span>
           </h1>
-          <ThemeToggle />
         </header>
         
         <div className="flex-1 overflow-hidden min-h-0 relative">

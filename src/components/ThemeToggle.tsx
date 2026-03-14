@@ -14,7 +14,7 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
-    return <div className="w-14 h-8 bg-secondary/50 rounded-full" />;
+    return <div className="w-14 h-8 rounded-full" style={{ backgroundColor: '#ffe4e8' }} />;
   }
 
   const isDark = theme === "dark";
@@ -23,7 +23,8 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="relative w-14 h-8 bg-secondary/50 rounded-full p-1 transition-colors hover:bg-secondary flex items-center"
+      className="relative w-14 h-8 rounded-full p-1 transition-colors flex items-center"
+      style={{ backgroundColor: isDark ? '#3d3133' : '#ffe4e8' }}
       aria-label="Toggle theme"
     >
       <motion.div

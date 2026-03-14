@@ -19,6 +19,8 @@
     --foreground: #fcecef;
     --primary: #ff8fa3;
     --primary-foreground: #1a1617;
+    --selected-bg: #ffe4e8;
+    --selected-text: #1a1617;
     --secondary: #2d2426;
     --accent: #ffb7c5;
     --border: #3d3133;
@@ -53,9 +55,18 @@
   --color-input-bg: var(--input-bg);
   --color-disabled: var(--disabled);
   --color-disabled-foreground: var(--disabled-foreground);
-  
-  /* Tailwind v4 다크 모드 전략 (클래스 기반) */
-  --variant-dark: .dark &;
+  --color-selected-bg: var(--selected-bg);
+  --color-selected-text: var(--selected-text);
+}
+
+/* Tailwind v4 다크 모드 전략 (클래스 기반 강제) */
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 0ms;
+  }
 }
 
 @layer components {
@@ -68,5 +79,13 @@
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

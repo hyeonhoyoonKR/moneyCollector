@@ -27,17 +27,17 @@ export default function LoginPage() {
           <span className="text-primary">돈버는</span>
           <span className="text-accent">가계부</span>
         </h1>
-        <p className="text-gray-500">파스텔 핑크와 함께하는 스마트한 소비 습관</p>
+        <p className="text-gray-500">재테크의 시작은 절약이다!</p>
       </div>
 
       <div className="space-y-4">
         {/* OAuth Buttons */}
         <button
           onClick={() => handleOAuthLogin('google')}
-          className="w-full flex items-center justify-center gap-3 bg-input-bg border border-border py-3 rounded-xl hover:bg-secondary transition-colors shadow-sm"
+          className="w-full flex items-center justify-center gap-3 bg-input-bg dark:bg-[#3d3133] border border-border py-3 rounded-xl hover:bg-secondary transition-colors shadow-sm"
         >
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-          <span className="font-medium text-gray-700">구글로 로그인</span>
+          <span className="font-medium text-foreground dark:text-foreground">구글로 로그인</span>
         </button>
 
         <button
