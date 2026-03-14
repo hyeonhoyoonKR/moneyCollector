@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "돈 버는 가계부",
-  description: "Next.js와 Supabase로 만든 가계부 앱",
+  description: "Next.js와 Supabase로 내가 쓰려고 만든 가계부 앱",
   manifest: "/manifest.json",
   themeColor: "#000000",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
